@@ -1,6 +1,6 @@
 # AI聊天应用教程
 
-这是一个基于 Vue 3 + Node.js 构建的AI聊天应用教学项目，实现了与讯飞MaaS平台的集成，支持流式对话功能。
+这是一个基于 Vue 3 + Node.js 构建的AI对话项目，实现了与讯飞MaaS平台的集成，支持流式对话功能。
 
 ## 技术栈
 
@@ -285,21 +285,6 @@ pm start
 - 清除浏览器缓存
 - 查看控制台是否有CSS错误
 
-## 扩展学习
-
-### 功能扩展建议
-1. 添加多模型选择功能
-2. 实现消息保存和加载
-3. 增加用户身份认证
-4. 添加语音输入/输出功能
-5. 支持文件上传和处理
-
-### 技术深入学习
-- Vue 3 Composition API 官方文档
-- Node.js 流处理机制
-- Server-Sent Events (SSE) 协议
-- 讯飞MaaS平台 API 文档
-
 ## 贡献指南
 
 欢迎提交Issue和Pull Request来改进这个项目！
@@ -308,12 +293,3 @@ pm start
 
 MIT License
 
-## 联系方式
-
-如有问题或建议，请通过以下方式联系：
-- GitHub Issues: <repository-issues-url>
-- 电子邮件: <your-email>
-
----
-
-**享受AI聊天的乐趣！** 🤖💬
