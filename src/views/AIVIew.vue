@@ -2,13 +2,14 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { ChatDotRound, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-
+// import { RecycleScroller } from 'vue-virtual-scroller'
+// import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 // 对话消息列表
 const messages = ref([
   {
     id: 1,
     role: 'assistant',
-    content: '你好！我是你的AI助手，有什么可以帮助你的吗？',
+    content: '你好！我是你的AI阅读助手，有什么可以帮助你的吗？',
     timestamp: new Date().toLocaleString()
   }
 ])
@@ -85,8 +86,8 @@ const sendMessage = async () => {
     }
     messages.value.push(aiReply)
     
-    // 隐藏正在输入指示器
-    isGenerating.value = false
+    // 保持正在生成状态，直到响应处理完成
+    // isGenerating.value = false
 
     while (true) {
       const { done, value } = await reader.read()
@@ -103,7 +104,7 @@ const sendMessage = async () => {
           try {
             const json = JSON.parse(data)
             if (json.error) {
-              throw new Error(json.error)
+              throw new Error(json.error.message || JSON.stringify(json.error))
             }
             if (json.choices && json.choices.length > 0) {
               const delta = json.choices[0].delta
@@ -118,8 +119,15 @@ const sendMessage = async () => {
             }
           } catch (jsonError) {
             console.error('解析JSON错误:', jsonError)
+            console.error('原始数据:', data)
             // 发送错误通知
             ElMessage.error(`流式响应解析错误: ${jsonError.message}`)
+            // 即使出错也要确保AI回复有内容
+            if (!aiReply.content) {
+              aiReply.content = '抱歉，AI回复生成失败，请稍后重试'
+              messages.value = [...messages.value]
+              scrollToBottom()
+            }
           }
         }
       }
@@ -127,6 +135,14 @@ const sendMessage = async () => {
   } catch (error) {
     console.error('Error:', error)
     ElMessage.error('获取AI回复失败，请稍后重试')
+    // 确保AI回复有内容，避免空白
+    const errorMessage = {
+      id: Date.now() + 2,
+      role: 'assistant',
+      content: '抱歉，AI回复生成失败，请稍后重试',
+      timestamp: new Date().toLocaleString()
+    }
+    messages.value.push(errorMessage)
   } finally {
     isGenerating.value = false
     scrollToBottom()
@@ -143,6 +159,13 @@ onMounted(() => {
   <div class="chat-container">
     <!-- 聊天区域 -->
     <div class="chat-messages" ref="chatContainer">
+      <!-- <RecycleScroller
+          class="scroller"
+          :items="currentSession?.messages || []"
+          :item-size="80"
+          key-field="id"
+          v-slot="{ item }"
+        > -->
       <div
         v-for="(message, index) in messages"
         :key="index"
@@ -153,7 +176,7 @@ onMounted(() => {
       >
         <div class="message-content">{{ message.content }}</div>
       </div>
-      
+       <!-- </RecycleScroller> -->
       <!-- 正在输入指示器 -->
       <div v-if="isGenerating" class="message-item ai-message">
         <div class="message-content generating">
@@ -243,7 +266,7 @@ onMounted(() => {
 .typing-dot {
   width: 8px;
   height: 8px;
-  background-color: #0284c7;
+  background-color: #40befc;
   border-radius: 50%;
   animation: typing 1.4s infinite ease-in-out;
 }
@@ -296,7 +319,7 @@ onMounted(() => {
 }
 
 .user-message .message-content {
-  background-color: #0284c7;
+  background-color: #4594f6;
   color: white;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
@@ -304,9 +327,11 @@ onMounted(() => {
 
 
 .input-area {
-  padding: 20px;
+  padding: 10px;
+  height: 130px;
   background-color: #fff;
   border-top: 1px solid #e8e8e8;
+  position:relative;
 }
 
 .input-area :deep(.el-textarea__inner) {
@@ -317,7 +342,9 @@ onMounted(() => {
 }
 
 .input-area :deep(.el-button) {
-  margin-top: 12px;
+  position:absolute;
+  margin-top: 83px;
+  right:10px;
   border-radius: 12px;
   padding: 8px 24px;
   font-size: 15px;
